@@ -7,13 +7,15 @@ from typing import List
 from lifxlan import LifxLAN
 from numpy import linspace
 from scipy.interpolate import interp1d
-from typer import Typer, Argument
+from typer import Typer, Argument, Option
+import matplotlib.pyplot as plt
 import yaml
 
 app = Typer(add_completion=False)
+maxint = 65535
 
 
-def converter(omin=0, omax=65535, imin=0, imax=100):
+def converter(omin=0, omax=maxint, imin=0, imax=100):
     return lambda x: omin + int((max(min(x, imax), imin) / imax) * (omax - omin))
 
 
@@ -49,12 +51,44 @@ def load_scheme(scheme, steps):
     return colors, after
 
 
+def plot(path: Path, colors: List[List[float]]):
+    with plt.xkcd():
+        plt.rcParams["font.family"] = "sans"
+        fig = plt.figure()
+        ax = fig.add_axes((0.1, 0.2, 0.8, 0.7))
+        ax.spines.right.set_color("none")
+        ax.spines.top.set_color("none")
+        ax.set_xticks([])
+        ax.set_yticks([0, maxint])
+        ax.set_yticklabels(["0", "max"])
+        ax.set_ylim([0, maxint])
+
+        colors = list(colors)
+        plt.plot([c[0] for c in colors], label="hue")
+        plt.plot([c[1] for c in colors], label="saturation")
+        plt.plot([c[2] for c in colors], label="brightness")
+        plt.plot([c[3] * maxint / 9000 for c in colors], label="temperature")
+
+        ax.set_xlabel("time")
+        ax.set_ylabel("value")
+        plt.legend(loc="upper left")
+        plt.savefig(path)
+        print(f"Chart saved at {path}")
+
+
 @app.command()
 def main(
     scheme: Path = Argument(..., help="Path to scheme file"),
-    duration: float = Argument(..., help="Duration in minutes"),
-    steps: int = Argument(10000, help="Number of steps to use"),
+    duration: float = Option(3, help="Duration in minutes"),
+    steps: int = Option(10000, help="Number of steps to use"),
+    draw: bool = Option(False, help="Set to draw a plot and exit (no lighting)"),
 ):
+    scheme = Path(scheme)
+    colors, after = load_scheme(scheme, steps)
+    if draw:
+        plot(f"{scheme.stem}.png", colors)
+        return
+
     if steps * 0.02 > duration * 60:
         print("Warning: fade may over-run due to LIFX lag")
         print("Consider a longer duration or fewer steps")
@@ -62,9 +96,8 @@ def main(
     lifx = LifxLAN(1)
     devices = lifx.get_lights()
     bulb = devices[0]
-    bulb.set_power("on")
 
-    colors, after = load_scheme(scheme, steps)
+    bulb.set_power("on")
     for color in colors:
         start = time.time()
         bulb.set_color(color)
