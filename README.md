@@ -40,5 +40,10 @@ See help output:
 
 To run, choose a config file and duration (in minutes):
 ```bash
-./run.py wake.yaml 10
+./run.py wake.yml --duration=10
+```
+
+You can also a chart of your config as follows. Output will be saved to a PNG with the same name as the config file.
+```bash
+./run.py wake.yml --draw
 ```
