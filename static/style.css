@@ -1,0 +1,31 @@
+html {
+    font-family: Verdana;
+}
+
+body {
+    width: 50%;
+    margin: auto;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.main > * {
+    font-size: 16px;
+    text-align: center;
+    text-align-last: center;
+    text-align: -webkit-center;
+}
+
+select {
+    height: 50px;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+button {
+    margin-top: 40px;
+}

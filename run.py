@@ -4,7 +4,7 @@ import time
 from pathlib import Path
 from typing import List
 
-from lifxlan import LifxLAN
+from lifxlan import LifxLAN, Light
 from numpy import linspace
 from scipy.interpolate import interp1d
 from typer import Typer, Argument, Option
@@ -93,9 +93,10 @@ def main(
         print("Warning: fade may over-run due to LIFX lag")
         print("Consider a longer duration or fewer steps")
 
-    lifx = LifxLAN(1)
-    devices = lifx.get_lights()
-    bulb = devices[0]
+    # lifx = LifxLAN(1)
+    # devices = lifx.get_lights()
+    # bulb = devices[0]
+    bulb = Light('d0:73:d5:66:72:58', '192.168.178.51')
 
     bulb.set_power("on")
     for color in colors:

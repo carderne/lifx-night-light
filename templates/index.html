@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0">
+        <title>Wake</title>
+        <link rel="stylesheet" type="text/css" href="static/style.css" />
+    </head>
+    <body>
+        <div class="main">
+            <p>On</p>
+            <select id="days">
+		<option value="off" {% if days == "off" %}selected{% endif %}>No days</option>
+                <option value="week" {% if days == "week" %}selected{% endif %}>Weekdays</option>
+                <option value="all" {% if days == "all" %}selected{% endif %}>All days</option>
+            </select>
+            <p>at</p>
+            <select id="time">
+                <option value="6:45" {% if time == "6:45" %}selected{% endif %}>6:45</option>
+		<option value="7:00" {% if time == "7:00" %}selected{% endif %}>7:00</option>
+                <option value="7:15" {% if time == "7:15" %}selected{% endif %}>7:15</option>
+                <option value="7:30" {% if time == "7:30" %}selected{% endif %}>7:30</option>
+                <option value="7:45" {% if time == "7:45" %}selected{% endif %}>7:45</option>
+                <option value="8:00" {% if time == "8:00" %}selected{% endif %}>8:00</option>
+                <option value="8:15" {% if time == "8:15" %}selected{% endif %}>8:15</option>
+            </select>
+            <p>for</p>
+            <select id="duration">
+                <option value=15 {% if duration == "15" %}selected{% endif %}>15 minutes</option>
+                <option value=30 {% if duration == "30" %}selected{% endif %}>30 minutes</option>
+                <option value=45 {% if duration == "45" %}selected{% endif %}>45 minutes</option>
+                <option value=60 {% if duration == "60" %}selected{% endif %}>60 minutes</option>
+            </select>
+            <button onclick="update()">Update</button>
+	    <p id="msg"></p>
+            <button onclick="sleep()">Sleep!</button>
+        </div>
+        <script src="static/main.js"></script>
+    </body>
+</html>

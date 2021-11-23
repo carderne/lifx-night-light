@@ -1,6 +1,8 @@
-lifxlan==1.2.7
-numpy==1.21.4
-PyYAML==6.0
-scipy==1.7.2
-typer==0.4.0
-matplotlib==3.5.0
+matplotlib
+lifxlan
+numpy
+PyYAML
+scipy
+typer
+Flask
+python-crontab
