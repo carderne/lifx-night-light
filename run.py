@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List
 
 from lifxlan import LifxLAN, Light
+from lifxlan.errors import WorkflowException
 from numpy import linspace
 from scipy.interpolate import interp1d
 from typer import Typer, Argument, Option
@@ -92,11 +93,20 @@ def main(
         print("Warning: fade may over-run due to LIFX lag")
         print("Consider a longer duration or fewer steps")
 
-    # lifx = LifxLAN(1)
-    # devices = lifx.get_lights()
-    # bulb = devices[0]
-    bulb = Light('d0:73:d5:66:72:58', '192.168.178.51')
+    with open("device.yml") as f:
+        device_config = yaml.safe_load(f)
 
+    try:
+        bulb = Light(device_config["mac"], device_config["ip"])
+        bulb.get_power()  # check that bulb works
+    except (TypeError, KeyError, ValueError, WorkflowException):
+        print("Device not/wrongly configured, getting first device on network")
+        bulb = LifxLAN(1).get_lights()[0]
+        device_config = {"ip": bulb.get_ip_addr(), "mac": bulb.get_mac_addr()}
+        with open("device.yml", "w") as f:
+            yaml.dump(device_config, f)
+
+    print("Starting lighting")
     bulb.set_power("on")
     for color in colors:
         start = time.time()

@@ -5,6 +5,8 @@ My [wake-up light](https://rdrn.me/wake-up-light/) became a bit of a fire hazard
 
 But relying on the cloud for lights seems silly, so I blocked it from the internet and wrote this script to control it with my Raspberry Pi.
 
+![Colour curve](./wake.png)
+
 ## Installation
 ```
 git clone git@github.com:carderne/lifx-transitions.git
