@@ -1,5 +1,5 @@
 import os
-from subprocess import run
+import subprocess
 
 from flask import Flask, render_template, request, jsonify
 from crontab import CronTab
@@ -41,9 +41,9 @@ def update():
         cmd = " ".join([
             "/home/pi/lifx/venv/bin/python",
             "/home/pi/lifx/run.py",
-            "/home/pi/lifx/wake.yml",
+            "wake",
             f"--duration={duration}",
-            "--steps=500",
+            "--steps=200",
         ])
         job = cron.new(
             command=cmd,
@@ -64,10 +64,11 @@ def sleep():
     cmd = [
         "/home/pi/lifx/venv/bin/python",
         "/home/pi/lifx/run.py",
-        "/home/pi/lifx/sleep.yml",
+        "sleep",
         "--duration=30",
         "--steps=500",
     ]
-    run(cmd, text=True, capture_output=True)
+    p = subprocess.Popen(cmd, preexec_fn=os.setsid)
     print(p.stdout)
+    print(p.stderr)
     return jsonify("Sleep!")
