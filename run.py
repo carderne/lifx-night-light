@@ -29,9 +29,9 @@ def fix_range(val: List):
     return val
 
 
-def load_scheme(scheme, steps):
-    with open(scheme) as f:
-        vals = yaml.safe_load(f)
+def load_scene(scene, steps):
+    with open("scenes.yml") as f:
+        vals = yaml.safe_load(f)[scene]
 
     after = vals.pop("after", "on")
     for k, v in vals.items():
@@ -78,15 +78,14 @@ def plot(path: Path, colors: List[List[float]]):
 
 @app.command()
 def main(
-    scheme: Path = Argument(..., help="Path to scheme file"),
+    scene: str = Argument(..., help="Name of scene in scenes.yml"),
     duration: float = Option(3, help="Duration in minutes"),
-    steps: int = Option(10000, help="Number of steps to use"),
+    steps: int = Option(1000, help="Number of steps to use"),
     draw: bool = Option(False, help="Set to draw a plot and exit (no lighting)"),
 ):
-    scheme = Path(scheme)
-    colors, after = load_scheme(scheme, steps)
+    colors, after = load_scene(scene, steps)
     if draw:
-        plot(f"{scheme.stem}.png", colors)
+        plot(f"{scene}.png", colors)
         return
 
     if steps * 0.02 > duration * 60:

@@ -1,5 +1,4 @@
 import os
-import json
 from subprocess import run
 
 from flask import Flask, render_template, request, jsonify
@@ -9,13 +8,14 @@ import yaml
 app = Flask(__name__)
 
 
-config_file = "config.json"
+config_file = "cron.yml"
 
 
 @app.route("/")
 def index():
     with open(config_file, "r") as f:
-        config = json.load(f)
+        config = yaml.safe_load(f)
+    print(config)
     days = config["days"]
     time = config["time"]
     duration = config["duration"]
@@ -31,15 +31,22 @@ def update():
     duration = values.get("duration")
 
     with open(config_file, "w") as f:
-        json.dump({"days": days, "time": time, "duration": duration}, fp=f)
+        yaml.dump({"days": days, "time": time, "duration": duration}, f)
 
     hour, minute = time.split(":")
 
     cron = CronTab(user=True)
     cron.remove_all(comment="wake")
     if days != "off":
+        cmd = " ".join([
+            "/home/pi/lifx/venv/bin/python",
+            "/home/pi/lifx/run.py",
+            "/home/pi/lifx/wake.yml",
+            f"--duration={duration}",
+            "--steps=500",
+        ])
         job = cron.new(
-            command=f"/home/pi/lifx/venv/bin/python /home/pi/lifx/run.py /home/pi/lifx/wake.yml --duration={duration}",
+            command=cmd,
             comment="wake",
         )
         job.minute.on(minute)
@@ -64,6 +71,3 @@ def sleep():
     run(cmd, text=True, capture_output=True)
     print(p.stdout)
     return jsonify("Sleep!")
-
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)

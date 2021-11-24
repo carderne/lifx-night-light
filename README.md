@@ -12,8 +12,8 @@ cd lifx-transitions
 pip install -r requirements.txt
 ```
 
-## Configuration
-Create a YAML config file something like the example below with a list of values for each of these:
+## Scene configuration
+The scenes are stored in [scenes.yml](scenes.yml) and specified as follows:
 - `hue` ranges from 0 to 360 in a [color wheel](https://upload.wikimedia.org/wikipedia/commons/a/ad/HueScale.svg)
 - `sat` (saturation) from 0 to 100
 - `bri` (brightness) from 0 to 100
@@ -22,15 +22,17 @@ Create a YAML config file something like the example below with a list of values
 
 Values will be linearly interpolated so you can provide as many or as few as you like for each variable.
 
+Example:
 ```yaml
-hue: [45, 45, 45, 30, 30, 15, 15, 15, 0, 0, 0]
-sat: [30, 70]
-bri: [20, 15, 10, 5, 4, 3, 2, 1, 0]
-kel: 20    # can just provide a constant like this
-after: on  # optional, defaults to on
+sleep:
+  hue: [45, 45, 45, 30, 30, 15, 15, 15, 0, 0, 0]
+  sat: [30, 70]
+  bri: [20, 15, 10, 5, 4, 3, 2, 1, 0]
+  kel: 20    # can just provide a constant like this
+  after: on  # optional, defaults to on
 ```
 
-There are two more examples in [wake.yml](wake.yml) and [sleep.yml](sleep.yml).
+You can see the existing two scenes in [scenes.yml](scenes.yml), edit them, add more etc.
 
 ## Running
 See help output:
@@ -38,12 +40,51 @@ See help output:
 ./run.py --help
 ```
 
-To run, choose a config file and duration (in minutes):
+To run, choose a scene and duration (in minutes):
 ```bash
-./run.py wake.yml --duration=10
+./run.py wake --duration=10
+```
+
+If it lags (slow Raspberry Pi or WiFi), you might want to reduce the number of steps (default is 10,000):
+```bash
+./run.py wake --duration=5 --steps=10
 ```
 
 You can also a chart of your config as follows. Output will be saved to a PNG with the same name as the config file.
 ```bash
 ./run.py wake.yml --draw
+```
+
+## Web app
+There's also a webapp in the [web](web) directory.
+
+Run it as follows:
+```bash
+FLASK_DEBUG=1 FLASK_APP=web.app.py flask run -h 0.0.0.0 0.0
+```
+
+And you can add a `systemd` unit something like this to make it run permanently:
+```systemd
+# /etc/systemd/system/lifx.service
+[Unit]
+Description=Lifx/flask lighting app
+After=network.target
+
+[Service]
+User=pi
+Group=pi
+Environment="FLASK_APP=web.app.py"
+ExecStart=/home/pi/lifx/venv/bin/flask run -h 0.0.0.0
+WorkingDirectory=/home/pi/lifx/
+Restart=on-failure
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then:
+```bash
+sudo systemctl enable lifx
+sudo systemctl start lifx
 ```
