@@ -1,26 +1,21 @@
-#!/usr/bin/env python3
-
 import time
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 from lifxlan import LifxLAN, Light
 from lifxlan.errors import WorkflowException
 from numpy import linspace
 from scipy.interpolate import interp1d
-from typer import Typer, Argument, Option
 import matplotlib.pyplot as plt
 import yaml
 
-app = Typer(add_completion=False)
 maxint = 65535
-
 
 def converter(omin=0, omax=maxint, imin=0, imax=100):
     return lambda x: omin + int((max(min(x, imax), imin) / imax) * (omax - omin))
 
 
-def fix_range(val: List):
+def fix_range(val: list) -> list:
     if isinstance(val, int):
         return [val, val]
     elif len(val) == 0:
@@ -30,7 +25,7 @@ def fix_range(val: List):
     return val
 
 
-def load_scene(scene, steps):
+def load_scene(scene: str, steps: int) -> Tuple[list, str]:
     with open("scenes.yml") as f:
         vals = yaml.safe_load(f)[scene]
 
@@ -52,7 +47,7 @@ def load_scene(scene, steps):
     return colors, after
 
 
-def plot(path: Path, colors: List[List[float]]):
+def plot(path: Path, colors: List[List[float]]) -> None:
     with plt.xkcd():
         plt.rcParams["font.family"] = "sans"
         fig = plt.figure()
@@ -77,12 +72,11 @@ def plot(path: Path, colors: List[List[float]]):
         print(f"Chart saved at {path}")
 
 
-@app.command()
 def main(
-    scene: str = Argument(..., help="Name of scene in scenes.yml"),
-    duration: float = Option(3, help="Duration in minutes"),
-    steps: int = Option(1000, help="Number of steps to use"),
-    draw: bool = Option(False, help="Set to draw a plot and exit (no lighting)"),
+    scene: str,
+    duration: float,
+    steps: int,
+    draw: bool = False,
 ):
     colors, after = load_scene(scene, steps)
     if draw:
@@ -114,7 +108,4 @@ def main(
         lag = time.time() - start
         time.sleep(max(0, duration * 60 / steps - lag))
     bulb.set_power(after)
-
-
-if __name__ == "__main__":
-    app()
+    print("Done lighting")

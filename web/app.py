@@ -9,6 +9,7 @@ app = Flask(__name__)
 
 
 config_file = "cron.yml"
+args_file = "args.yml"
 
 
 @app.route("/")
@@ -40,7 +41,7 @@ def update():
     if days != "off":
         cmd = " ".join([
             "/home/pi/lifx/venv/bin/python",
-            "/home/pi/lifx/run.py",
+            "/home/pi/lifx/cli.py",
             "wake",
             f"--duration={duration}",
             "--steps=200",
@@ -61,14 +62,7 @@ def update():
 
 @app.route("/api/sleep", methods=["POST"])
 def sleep():
-    cmd = [
-        "/home/pi/lifx/venv/bin/python",
-        "/home/pi/lifx/run.py",
-        "sleep",
-        "--duration=30",
-        "--steps=500",
-    ]
-    p = subprocess.Popen(cmd, preexec_fn=os.setsid)
-    print(p.stdout)
-    print(p.stderr)
+    args = {"scene": "sleep", "duration": 1, "steps": 10}
+    with open(args_file, "w") as f:
+        yaml.dump(args, f)
     return jsonify("Sleep!")

@@ -1,5 +1,5 @@
-# lifx-transitions
-Simple light transitions (wake-up, wind-down) for LIFX, using [lifxlan](https://github.com/mclarkk/lifxlan).
+# lifx-pi
+Simple light scenes (wake-up, wind-down, whatever you want) for LIFX, using [lifxlan](https://github.com/mclarkk/lifxlan).
 
 My [wake-up light](https://rdrn.me/wake-up-light/) became a bit of a fire hazard, so I gave up and bought a [LIFX Colour](https://lifxshop.co.uk/products/lifx-colour-e27).
 
@@ -9,8 +9,10 @@ But relying on the cloud for lights seems silly, so I blocked it from the intern
 
 ## Installation
 ```
-git clone git@github.com:carderne/lifx-transitions.git
-cd lifx-transitions
+git clone git@github.com:carderne/lifx-pi.git
+cd lifx-pi
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -65,9 +67,9 @@ Run it as follows:
 FLASK_DEBUG=1 FLASK_APP=web.app.py flask run -h 0.0.0.0 0.0
 ```
 
-And you can add a `systemd` unit something like this to make it run permanently:
+And you can add a `systemd`unit something like this to make it run permanently:
 ```systemd
-# /etc/systemd/system/lifx.service
+# /etc/systemd/system/lifx-web.service
 [Unit]
 Description=Lifx/flask lighting app
 After=network.target
@@ -76,8 +78,8 @@ After=network.target
 User=pi
 Group=pi
 Environment="FLASK_APP=web.app.py"
-ExecStart=/home/pi/lifx/venv/bin/flask run -h 0.0.0.0
-WorkingDirectory=/home/pi/lifx/
+ExecStart=/home/pi/lifx-pi/venv/bin/flask run -h 0.0.0.0
+WorkingDirectory=/home/pi/lifx-pi/
 Restart=on-failure
 RemainAfterExit=yes
 
@@ -87,6 +89,12 @@ WantedBy=multi-user.target
 
 Then:
 ```bash
-sudo systemctl enable lifx
-sudo systemctl start lifx
+sudo systemctl enable lifx-web
+sudo systemctl start lifx-web
+```
+
+## Daemon
+The web app relies on [daemon.py](daemon.py). You should make a systemd service for this as well. Same instructions as above but change this line (and give the file a different name):
+```
+/home/pi/lifx-pi/venv/bin/python /home/pi/lifx-pi/daemon.py
 ```
