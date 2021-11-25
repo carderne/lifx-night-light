@@ -7,13 +7,13 @@ body {
     margin: auto;
 }
 
-.main {
+.main, .main > div {
     display: flex;
     flex-direction: column;
     justify-content: center;
 }
 
-.main > * {
+.main > div > * {
     font-size: 16px;
     text-align: center;
     text-align-last: center;
@@ -28,4 +28,9 @@ select {
 
 button {
     margin-top: 40px;
+}
+
+.bottom {
+	padding-top: 2rem;
+	border-top: 2px solid black;
 }

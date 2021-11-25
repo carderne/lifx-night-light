@@ -62,7 +62,9 @@ def update():
 
 @app.route("/api/sleep", methods=["POST"])
 def sleep():
-    args = {"scene": "sleep", "duration": 1, "steps": 10}
+    duration = request.get_json().get("duration")
+    print("Wind down for", duration)
+    args = {"scene": "sleep", "duration": duration, "steps": 100}
     with open(args_file, "w") as f:
         yaml.dump(args, f)
     return jsonify("Sleep!")

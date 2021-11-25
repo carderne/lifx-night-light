@@ -8,6 +8,7 @@
     </head>
     <body>
         <div class="main">
+	<div>
             <p>On</p>
             <select id="days">
 		<option value="off" {% if days == "off" %}selected{% endif %}>No days</option>
@@ -33,7 +34,17 @@
             </select>
             <button onclick="update()">Update</button>
 	    <p id="msg"></p>
-            <button onclick="sleep()">Sleep!</button>
+	</div>
+	<div class="bottom">
+	    <p>Wind down for</p>
+            <select id="duration-sleep">
+                <option value=15 {% if duration == "15" %}selected{% endif %}>15 minutes</option>
+                <option value=30 {% if duration == "30" %}selected{% endif %}>30 minutes</option>
+                <option value=45 {% if duration == "45" %}selected{% endif %}>45 minutes</option>
+                <option value=60 {% if duration == "60" %}selected{% endif %}>60 minutes</option>
+            </select>
+            <button onclick="sleep()">Go!</button>
+	</div>
         </div>
         <script src="static/main.js"></script>
     </body>
