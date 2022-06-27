@@ -11,6 +11,7 @@ import yaml
 
 maxint = 65535
 
+
 def converter(omin=0, omax=maxint, imin=0, imax=100):
     return lambda x: omin + int((max(min(x, imax), imin) / imax) * (omax - omin))
 
@@ -25,8 +26,9 @@ def fix_range(val: list) -> list:
     return val
 
 
-def load_scene(scene: str, steps: int) -> Tuple[list, str]:
-    with open("scenes.yml") as f:
+def load_scene(scene: str, steps: int) -> Tuple[List[List[float]], str]:
+    scenes_file = Path(__file__).parents[1] / "scenes.yml"
+    with scenes_file.open() as f:
         vals = yaml.safe_load(f)[scene]
 
     after = vals.pop("after", "on")
@@ -43,7 +45,7 @@ def load_scene(scene: str, steps: int) -> Tuple[list, str]:
     conkel = converter(omin=2500, omax=9000)
 
     xs = (100 * s / steps for s in range(steps + 1))
-    colors = ([conhue(hue(x)), con(sat(x)), con(bri(x)), conkel(kel(x))] for x in xs)
+    colors = [[conhue(hue(x)), con(sat(x)), con(bri(x)), conkel(kel(x))] for x in xs]
     return colors, after
 
 
@@ -72,6 +74,19 @@ def plot(path: Path, colors: List[List[float]]) -> None:
         print(f"Chart saved at {path}")
 
 
+def retry(func, arg, max_retries=1):
+    retries = 0
+    while True:
+        try:
+            func(arg)
+            return
+        except WorkflowException:
+            pass
+        if retries >= max_retries:
+            return
+        retries += 1
+
+
 def main(
     scene: str,
     duration: float,
@@ -80,14 +95,15 @@ def main(
 ):
     colors, after = load_scene(scene, steps)
     if draw:
-        plot(f"{scene}.png", colors)
+        plot(Path(f"{scene}.png"), colors)
         return
 
     if steps * 0.02 > duration * 60:
         print("Warning: fade may over-run due to LIFX lag")
         print("Consider a longer duration or fewer steps")
 
-    with open("device.yml") as f:
+    device_file = Path(__file__).parents[1] / "device.yml"
+    with device_file.open() as f:
         device_config = yaml.safe_load(f)
 
     try:
@@ -97,15 +113,23 @@ def main(
         print("Device not/wrongly configured, getting first device on network")
         bulb = LifxLAN(1).get_lights()[0]
         device_config = {"ip": bulb.get_ip_addr(), "mac": bulb.get_mac_addr()}
-        with open("device.yml", "w") as f:
+        with device_file.open("w") as f:
             yaml.dump(device_config, f)
 
     print("Starting lighting")
-    bulb.set_power("on")
+    retry(bulb.set_power, "on")
+    overall_start = time.time()
     for color in colors:
         start = time.time()
-        bulb.set_color(color)
+        retry(bulb.set_color, color)
+
+        if (time.time() - overall_start) // 60 >= duration:
+            print("Ran out of time, set to last colour and quit")
+            retry(bulb.set_color, colors[-1])
+            break
+
         lag = time.time() - start
-        time.sleep(max(0, duration * 60 / steps - lag))
-    bulb.set_power(after)
+        sleep = max(0, duration * 60 / steps - lag)
+        time.sleep(sleep)
+    retry(bulb.set_power, after)
     print("Done lighting")
