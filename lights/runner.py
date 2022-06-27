@@ -1,6 +1,5 @@
 import time
 from pathlib import Path
-from typing import List, Tuple
 
 from lifxlan import LifxLAN, Light
 from lifxlan.errors import WorkflowException
@@ -26,12 +25,16 @@ def fix_range(val: list) -> list:
     return val
 
 
-def load_scene(scene: str, steps: int) -> Tuple[List[List[float]], str]:
+def load_scene(
+    scene: str, steps: int
+) -> tuple[list[list[float]], str, int]:
     scenes_file = Path(__file__).parents[1] / "scenes.yml"
     with scenes_file.open() as f:
         vals = yaml.safe_load(f)[scene]
 
     after = vals.pop("after", "on")
+    off_after = vals.pop("after", -1)
+
     for k, v in vals.items():
         vals[k] = fix_range(v)
 
@@ -46,10 +49,10 @@ def load_scene(scene: str, steps: int) -> Tuple[List[List[float]], str]:
 
     xs = (100 * s / steps for s in range(steps + 1))
     colors = [[conhue(hue(x)), con(sat(x)), con(bri(x)), conkel(kel(x))] for x in xs]
-    return colors, after
+    return colors, after, off_after
 
 
-def plot(path: Path, colors: List[List[float]]) -> None:
+def plot(path: Path, colors: list[list[float]]) -> None:
     with plt.xkcd():
         plt.rcParams["font.family"] = "sans"
         fig = plt.figure()
@@ -93,7 +96,7 @@ def main(
     steps: int,
     draw: bool = False,
 ):
-    colors, after = load_scene(scene, steps)
+    colors, after, off_after = load_scene(scene, steps)
     if draw:
         plot(Path(f"{scene}.png"), colors)
         return
@@ -132,4 +135,8 @@ def main(
         sleep = max(0, duration * 60 / steps - lag)
         time.sleep(sleep)
     retry(bulb.set_power, after)
+
+    if off_after >= 0:
+        time.sleep(off_after * 60)
+        retry(bulb.set_power, "off")
     print("Done lighting")
