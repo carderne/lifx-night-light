@@ -1,23 +1,16 @@
-async function update() {
-  const url = "/api/update";
-  let days = document.getElementById("days").value;
-  let time = document.getElementById("time").value;
-  let duration = document.getElementById("duration").value;
+const base = window.location.origin;
 
-  let data = {
-    days: days,
-    time: time,
-    duration: duration
-  };
+async function update() {
+  const url = new URL("/api/update", base);
+  const days = document.getElementById("days").value;
+  const time = document.getElementById("time").value;
+  const duration = document.getElementById("duration").value;
+  url.searchParams.append("days", days);
+  url.searchParams.append("time", time);
+  url.searchParams.append("duration", duration);
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    const response = await fetch(url);
     const json = await response.json();
     document.getElementById("msg").innerHTML = "Done!";
     setTimeout(function(){
@@ -29,16 +22,11 @@ async function update() {
 }
 
 async function sleep() {
-  const url = "/api/sleep";
-  const data = {duration: document.getElementById("duration-sleep").value};
+  const url = new URL("/api/sleep", base);
+  const duration = document.getElementById("duration-sleep").value;
+  url.searchParams.append("duration", duration);
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    const response = await fetch(url);
     const json = await response.json();
     document.getElementById("msg").innerHTML = "Done!";
     setTimeout(function(){

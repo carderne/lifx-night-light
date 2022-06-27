@@ -1,6 +1,3 @@
-import os
-import subprocess
-
 from flask import Flask, render_template, request, jsonify
 from crontab import CronTab
 import yaml
@@ -16,20 +13,20 @@ args_file = "args.yml"
 def index():
     with open(config_file, "r") as f:
         config = yaml.safe_load(f)
-    print(config)
+    app.logger.info(str(config))
     days = config["days"]
     time = config["time"]
     duration = config["duration"]
     return render_template("index.html", days=days, time=time, duration=duration)
 
 
-@app.route("/api/update", methods=["POST"])
+@app.route("/api/update")
 def update():
-    print("Updating")
-    values = request.get_json()
-    days = values.get("days")
-    time = values.get("time")
-    duration = values.get("duration")
+    app.logger.info("Updating")
+    days = request.args.get("days")
+    time = request.args.get("time")
+    duration = request.args.get("duration")
+    app.logger.warning(f"New wake: {days}, {time}, {duration}")
 
     with open(config_file, "w") as f:
         yaml.dump({"days": days, "time": time, "duration": duration}, f)
@@ -39,13 +36,15 @@ def update():
     cron = CronTab(user=True)
     cron.remove_all(comment="wake")
     if days != "off":
-        cmd = " ".join([
-            "/home/pi/lifx/venv/bin/python",
-            "/home/pi/lifx/cli.py",
-            "wake",
-            f"--duration={duration}",
-            "--steps=200",
-        ])
+        cmd = " ".join(
+            [
+                "/home/chris/lifx/venv/bin/python",
+                "/home/chris/lifx/cli.py",
+                "wake",
+                f"--duration={duration}",
+                "--steps=200",
+            ]
+        )
         job = cron.new(
             command=cmd,
             comment="wake",
@@ -60,11 +59,12 @@ def update():
 
     return jsonify("Updated")
 
-@app.route("/api/sleep", methods=["POST"])
+
+@app.route("/api/sleep")
 def sleep():
-    duration = request.get_json().get("duration")
-    print("Wind down for", duration)
-    args = {"scene": "sleep", "duration": duration, "steps": 100}
+    duration = request.args.get("duration")
+    app.logger.warning(f"Wind down for {duration} mins")
+    args = {"scene": "sleep", "duration": duration, "steps": 60}
     with open(args_file, "w") as f:
         yaml.dump(args, f)
     return jsonify("Sleep!")
