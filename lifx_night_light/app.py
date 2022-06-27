@@ -7,6 +7,7 @@ app = Flask(__name__)
 
 config_file = "cron.yml"
 args_file = "args.yml"
+venv_loc = "/home/chris/lifx/venv/bin"
 
 
 @app.route("/")
@@ -38,11 +39,10 @@ def update():
     if days != "off":
         cmd = " ".join(
             [
-                "/home/chris/lifx/venv/bin/python",
-                "/home/chris/lifx/cli.py",
+                f"{venv_loc}/lifx-cli",
                 "wake",
                 f"--duration={duration}",
-                "--steps=200",
+                "--steps=100",
             ]
         )
         job = cron.new(

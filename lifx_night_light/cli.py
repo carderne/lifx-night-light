@@ -1,10 +1,9 @@
-#!/usr/bin/env python3
-
 from typer import Typer, Argument, Option
 
-import lights
+from . import runner
 
 app = Typer(add_completion=False)
+
 
 @app.command()
 def main(
@@ -13,7 +12,8 @@ def main(
     steps: int = Option(100, help="Number of steps to use"),
     draw: bool = Option(False, help="Set to draw a plot and exit (no lighting)"),
 ):
-    lights.runner.main(scene, duration, steps, draw)
+    runner.main(scene, duration, steps, draw)
 
-if __name__ == "__main__":
+
+def cli():
     app()

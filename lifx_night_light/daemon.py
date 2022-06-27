@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
-
 import os
 import time
 
 import yaml
 
-import lights
+from . import runner
 
 
 def wait():
@@ -19,7 +17,7 @@ def wait():
             scene = str(a["scene"])
             duration = int(a["duration"])
             steps = int(a["steps"])
-            lights.runner.main(scene, duration, steps)
+            runner.main(scene, duration, steps)
         except FileNotFoundError:
             pass
         finally:
@@ -28,7 +26,3 @@ def wait():
             except FileNotFoundError:
                 pass
             time.sleep(1)
-
-
-if __name__ == "__main__":
-    wait()

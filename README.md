@@ -12,12 +12,18 @@ and wrote this script to control it with my Raspberry Pi.
 ![Colour curve](./wake.png)
 
 ## Installation
-```
+```bash
 git clone git@github.com:carderne/lifx-night-light.git
 cd lifx-pi
 python3 -m venv venv
 source venv/bin/activate
 pip install -e .
+```
+
+## Basic usage
+Run one of the pre-configured scenes for five minutes:
+```bash
+lifx-cli sleep --duration=5 --steps=10
 ```
 
 ## Scene configuration
@@ -42,33 +48,32 @@ sleep:
 
 You can see the existing two scenes in [scenes.yml](scenes.yml), edit them, add more etc.
 
-## Running
+## More usage examples
 See help output:
 ```bash
-./run.py --help
+lifx-cli --help
 ```
 
 To run, choose a scene and duration (in minutes):
 ```bash
-./run.py wake --duration=10
+lifx-cli wake --duration=10
 ```
 
 If it lags (slow Raspberry Pi or WiFi), you might want to reduce the number of steps (default is 10,000):
 ```bash
-./run.py wake --duration=5 --steps=10
+lifx-cli wake --duration=5 --steps=10
 ```
 
 You can also a chart of your config as follows. Output will be saved to a PNG with the same name as the config file.
 ```bash
-./run.py wake.yml --draw
+lifx-cli wake.yml --draw
 ```
 
 ## Web app
-There's also a webapp in the [web](web) directory.
-
+There's also a webapp.
 Run it as follows:
 ```bash
-FLASK_DEBUG=1 FLASK_APP=web.app.py flask run -h 0.0.0.0 0.0
+FLASK_DEBUG=1 FLASK_APP=lifx_night_light.app.py flask run -h 0.0.0.0
 ```
 
 And you can add a `systemd`unit something like this to make it run permanently:
@@ -99,7 +104,16 @@ sudo systemctl start lifx-web
 
 ## Daemon
 The web app relies on [daemon.py](daemon.py). You should make a systemd service for this as well.
-Same instructions as above but change this line (and give the file a different name):
+Same instructions as above but change these lines (and give it a different name as shown):
+```systemd
+# /etc/systemd/system/lifx-daemon.service
+[Service]
+User=pi
+Group=pi
+ExecStart=/home/pi/lifx-pi/venv/bin/lifx-daemon
+WorkingDirectory=/home/pi/lifx-pi/
+Restart=on-failure
+RemainAfterExit=yes
 ```
-/home/pi/lifx-pi/venv/bin/python /home/pi/lifx-pi/daemon.py
-```
+
+Then enable and start it as above.
