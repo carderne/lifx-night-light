@@ -7,18 +7,18 @@ import yaml
 
 import lights
 
+
 def wait():
     args_file = "args.yml"
 
     print("Daemon started")
     while True:
-        print("Waiting...")
         try:
             with open(args_file) as f:
                 a = yaml.safe_load(f)
-            scene = a["scene"]
-            duration = a["duration"]
-            steps = a["steps"]
+            scene = str(a["scene"])
+            duration = int(a["duration"])
+            steps = int(a["steps"])
             lights.runner.main(scene, duration, steps)
         except FileNotFoundError:
             pass

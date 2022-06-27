@@ -1,15 +1,19 @@
-# lifx-pi
-Simple light scenes (wake-up, wind-down, whatever you want) for LIFX, using [lifxlan](https://github.com/mclarkk/lifxlan).
+# lifx-night-light
+Simple light scenes (wake-up sunrise, wind-down sunset, whatever else) for [LIFX lights](https://www.lifx.com/),
+using [lifxlan](https://github.com/mclarkk/lifxlan),
+that run from a Pi/computer on your LAN.
 
-My [wake-up light](https://rdrn.me/wake-up-light/) became a bit of a fire hazard, so I gave up and bought a [LIFX Colour](https://lifxshop.co.uk/products/lifx-colour-e27).
+My [wake-up light](https://rdrn.me/wake-up-light/) became a bit of a fire hazard,
+so I gave up and bought a [LIFX Colour](https://lifxshop.co.uk/products/lifx-colour-e27).
 
-But relying on the cloud for lights seems silly, so I blocked it from the internet and wrote this script to control it with my Raspberry Pi.
+But relying on the cloud for lights seems silly, so I blocked it from the internet
+and wrote this script to control it with my Raspberry Pi.
 
 ![Colour curve](./wake.png)
 
 ## Installation
 ```
-git clone git@github.com:carderne/lifx-pi.git
+git clone git@github.com:carderne/lifx-night-light.git
 cd lifx-pi
 python3 -m venv venv
 source venv/bin/activate
@@ -94,7 +98,8 @@ sudo systemctl start lifx-web
 ```
 
 ## Daemon
-The web app relies on [daemon.py](daemon.py). You should make a systemd service for this as well. Same instructions as above but change this line (and give the file a different name):
+The web app relies on [daemon.py](daemon.py). You should make a systemd service for this as well.
+Same instructions as above but change this line (and give the file a different name):
 ```
 /home/pi/lifx-pi/venv/bin/python /home/pi/lifx-pi/daemon.py
 ```
