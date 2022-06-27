@@ -1,8 +1,0 @@
-matplotlib
-lifxlan
-numpy
-PyYAML
-scipy
-typer
-Flask
-python-crontab
