@@ -86,7 +86,7 @@ After=network.target
 [Service]
 User=pi
 Group=pi
-Environment="FLASK_APP=web.app.py"
+Environment="FLASK_APP=lifx_night_light.app.py"
 ExecStart=/home/pi/lifx-pi/venv/bin/flask run -h 0.0.0.0
 WorkingDirectory=/home/pi/lifx-pi/
 Restart=on-failure

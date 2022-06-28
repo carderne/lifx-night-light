@@ -1,21 +1,23 @@
 import time
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
+import matplotlib.pyplot as plt
+import yaml
 from lifxlan import LifxLAN, Light
 from lifxlan.errors import WorkflowException
 from numpy import linspace
 from scipy.interpolate import interp1d
-import matplotlib.pyplot as plt
-import yaml
 
 maxint = 65535
 
 
-def converter(omin=0, omax=maxint, imin=0, imax=100):
+def converter(omin=0, omax=maxint, imin=0, imax=100) -> Callable[[int], int]:
     return lambda x: omin + int((max(min(x, imax), imin) / imax) * (omax - omin))
 
 
-def fix_range(val: list) -> list:
+def fix_range(val: list | int) -> list[int]:
     if isinstance(val, int):
         return [val, val]
     elif len(val) == 0:
@@ -25,9 +27,18 @@ def fix_range(val: list) -> list:
     return val
 
 
-def load_scene(
-    scene: str, steps: int
-) -> tuple[list[list[float]], str, int]:
+Color = tuple[int, int, int, int]
+ColorSeq = list[Color]
+
+
+@dataclass
+class Config:
+    colors: ColorSeq
+    after: str
+    off_after: int = -1
+
+
+def load_scene(scene: str, steps: int) -> Config:
     scenes_file = Path(__file__).parents[1] / "scenes.yml"
     with scenes_file.open() as f:
         vals = yaml.safe_load(f)[scene]
@@ -48,11 +59,13 @@ def load_scene(
     conkel = converter(omin=2500, omax=9000)
 
     xs = (100 * s / steps for s in range(steps + 1))
-    colors = [[conhue(hue(x)), con(sat(x)), con(bri(x)), conkel(kel(x))] for x in xs]
-    return colors, after, off_after
+    colors = [(conhue(hue(x)), con(sat(x)), con(bri(x)), conkel(kel(x))) for x in xs]
+
+    config = Config(colors, after, off_after)
+    return config
 
 
-def plot(path: Path, colors: list[list[float]]) -> None:
+def plot(path: Path, colors: ColorSeq) -> None:
     with plt.xkcd():
         plt.rcParams["font.family"] = "sans"
         fig = plt.figure()
@@ -77,7 +90,7 @@ def plot(path: Path, colors: list[list[float]]) -> None:
         print(f"Chart saved at {path}")
 
 
-def retry(func, arg, max_retries=1):
+def retry(func: Callable, arg, max_retries=1) -> None:
     retries = 0
     while True:
         try:
@@ -91,14 +104,11 @@ def retry(func, arg, max_retries=1):
 
 
 def main(
-    scene: str,
-    duration: float,
-    steps: int,
-    draw: bool = False,
+    scene: str, duration: float, steps: int, draw: bool = False,
 ):
-    colors, after, off_after = load_scene(scene, steps)
+    config = load_scene(scene, steps)
     if draw:
-        plot(Path(f"{scene}.png"), colors)
+        plot(Path(f"{scene}.png"), config.colors)
         return
 
     if steps * 0.02 > duration * 60:
@@ -122,21 +132,21 @@ def main(
     print("Starting lighting")
     retry(bulb.set_power, "on")
     overall_start = time.time()
-    for color in colors:
+    for color in config.colors:
         start = time.time()
         retry(bulb.set_color, color)
 
         if (time.time() - overall_start) // 60 >= duration:
             print("Ran out of time, set to last colour and quit")
-            retry(bulb.set_color, colors[-1])
+            retry(bulb.set_color, config.colors[-1])
             break
 
         lag = time.time() - start
         sleep = max(0, duration * 60 / steps - lag)
         time.sleep(sleep)
-    retry(bulb.set_power, after)
+    retry(bulb.set_power, config.after)
 
-    if off_after >= 0:
-        time.sleep(off_after * 60)
+    if config.off_after >= 0:
+        time.sleep(config.off_after * 60)
         retry(bulb.set_power, "off")
     print("Done lighting")
