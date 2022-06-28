@@ -6,7 +6,7 @@ import yaml
 from . import runner
 
 
-def wait():
+def wait() -> None:
     args_file = "args.yml"
 
     print("Daemon started")

@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify
-from crontab import CronTab
+from flask.wrappers import Response
+from crontab import CronTab  # type: ignore[import]
 import yaml
 
 app = Flask(__name__)
@@ -11,7 +12,7 @@ venv_loc = "/home/chris/lifx/venv/bin"
 
 
 @app.route("/")
-def index():
+def index() -> str:
     with open(config_file, "r") as f:
         config = yaml.safe_load(f)
     app.logger.info(str(config))
@@ -22,10 +23,10 @@ def index():
 
 
 @app.route("/api/update")
-def update():
+def update() -> Response:
     app.logger.info("Updating")
     days = request.args.get("days")
-    time = request.args.get("time")
+    time = str(request.args.get("time"))
     duration = request.args.get("duration")
     app.logger.warning(f"New wake: {days}, {time}, {duration}")
 
@@ -61,7 +62,7 @@ def update():
 
 
 @app.route("/api/sleep")
-def sleep():
+def sleep() -> Response:
     duration = request.args.get("duration")
     app.logger.warning(f"Wind down for {duration} mins")
     args = {"scene": "sleep", "duration": duration, "steps": 60}

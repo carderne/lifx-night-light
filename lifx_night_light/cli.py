@@ -11,9 +11,9 @@ def main(
     duration: float = Option(1, help="Duration in minutes"),
     steps: int = Option(100, help="Number of steps to use"),
     draw: bool = Option(False, help="Set to draw a plot and exit (no lighting)"),
-):
+) -> None:
     runner.main(scene, duration, steps, draw)
 
 
-def cli():
+def cli() -> None:
     app()

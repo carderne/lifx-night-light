@@ -3,17 +3,19 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt  # type: ignore[import]
 import yaml
-from lifxlan import LifxLAN, Light
-from lifxlan.errors import WorkflowException
+from lifxlan import LifxLAN, Light  # type: ignore[import]
+from lifxlan.errors import WorkflowException  # type: ignore[import]
 from numpy import linspace
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d  # type: ignore[import]
 
 maxint = 65535
 
 
-def converter(omin=0, omax=maxint, imin=0, imax=100) -> Callable[[int], int]:
+def converter(
+    omin: int = 0, omax: int = maxint, imin: int = 0, imax: int = 100
+) -> Callable[[int], int]:
     return lambda x: omin + int((max(min(x, imax), imin) / imax) * (omax - omin))
 
 
@@ -90,7 +92,7 @@ def plot(path: Path, colors: ColorSeq) -> None:
         print(f"Chart saved at {path}")
 
 
-def retry(func: Callable, arg, max_retries=1) -> None:
+def retry(func: Callable, arg: Color | str, max_retries: int = 1) -> None:
     retries = 0
     while True:
         try:
@@ -103,9 +105,7 @@ def retry(func: Callable, arg, max_retries=1) -> None:
         retries += 1
 
 
-def main(
-    scene: str, duration: float, steps: int, draw: bool = False,
-):
+def main(scene: str, duration: float, steps: int, draw: bool = False,) -> None:
     config = load_scene(scene, steps)
     if draw:
         plot(Path(f"{scene}.png"), config.colors)
