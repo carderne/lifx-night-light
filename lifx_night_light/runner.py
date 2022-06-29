@@ -46,7 +46,7 @@ def load_scene(scene: str, steps: int) -> Config:
         vals = yaml.safe_load(f)[scene]
 
     after = vals.pop("after", "on")
-    off_after = vals.pop("after", -1)
+    off_after = int(vals.pop("after", -1))
 
     for k, v in vals.items():
         vals[k] = fix_range(v)
