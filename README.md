@@ -21,6 +21,12 @@ pip install -e .
 ```
 
 ## Basic usage
+You may need to set the following env vars for things to work:
+```bash
+export LIFX_CONF=${PWD}/conf
+export LIFX_BIN=$(which lifx-cli)
+```
+
 Run one of the pre-configured scenes for five minutes:
 ```bash
 lifx-cli sleep --duration=5 --steps=10
@@ -76,6 +82,11 @@ Run it as follows:
 FLASK_DEBUG=1 FLASK_APP=lifx_night_light.app.py flask run -h 0.0.0.0
 ```
 
+Or with Gunicorn:
+```bash
+gunicorn lifx_night_light.app:app --bind 0.0.0.0:8000
+```
+
 And you can add a `systemd`unit something like this to make it run permanently:
 ```systemd
 # /etc/systemd/system/lifx-web.service
@@ -117,3 +128,30 @@ RemainAfterExit=yes
 ```
 
 Then enable and start it as above.
+
+## Docker
+Web:
+```bash
+docker run --name lifx \
+  --rm \
+  -p 9005:8000 \
+  -v "$(pwd)"/conf:/app/conf \
+  -v "$(pwd)"/conf/crontab.txt:/etc/crontab \
+  carderne/lifx
+```
+
+Daemon:
+```bash
+docker run --name lifx-daemon \
+  --rm -it \
+  -v "$(pwd)"/conf:/app/conf \
+  carderne/lifx lifx-daemon
+```
+
+Cron (not yet working?):
+```bash
+docker run --name lifx-cron \
+  --rm \
+  -v "$(pwd)"/conf/crontab.txt:/etc/crontab \
+  carderne/lifx cron -f
+```

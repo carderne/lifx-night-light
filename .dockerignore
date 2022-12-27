@@ -1,0 +1,8 @@
+.git
+.gitignore
+LICENSE
+*.egg-info/
+.mypy_cache/
+README.md
+.ruff_cache/
+*.png

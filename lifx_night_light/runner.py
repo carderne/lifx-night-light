@@ -1,9 +1,9 @@
+import os
 import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
 
-import matplotlib.pyplot as plt  # type: ignore[import]
 import yaml
 from lifxlan import LifxLAN, Light  # type: ignore[import]
 from lifxlan.errors import WorkflowException  # type: ignore[import]
@@ -11,6 +11,10 @@ from numpy import linspace
 from scipy.interpolate import interp1d  # type: ignore[import]
 
 maxint = 65535
+
+LIFX_CONF = Path(os.getenv("LIFX_CONF", "conf"))
+SCENES_FILE = LIFX_CONF / "scenes.yml"
+DEVICE_FILE = LIFX_CONF / "device.yml"
 
 
 def converter(
@@ -41,8 +45,7 @@ class Config:
 
 
 def load_scene(scene: str, steps: int) -> Config:
-    scenes_file = Path(__file__).parents[1] / "scenes.yml"
-    with scenes_file.open() as f:
+    with open(SCENES_FILE) as f:
         vals = yaml.safe_load(f)[scene]
 
     after = vals.pop("after", "on")
@@ -68,6 +71,8 @@ def load_scene(scene: str, steps: int) -> Config:
 
 
 def plot(path: Path, colors: ColorSeq) -> None:
+    import matplotlib.pyplot as plt  # type: ignore[import]
+
     with plt.xkcd():
         plt.rcParams["font.family"] = "sans"
         fig = plt.figure()
@@ -105,7 +110,12 @@ def retry(func: Callable, arg: Color | str, max_retries: int = 1) -> None:
         retries += 1
 
 
-def main(scene: str, duration: float, steps: int, draw: bool = False,) -> None:
+def main(
+    scene: str,
+    duration: float,
+    steps: int,
+    draw: bool = False,
+) -> None:
     config = load_scene(scene, steps)
     if draw:
         plot(Path(f"{scene}.png"), config.colors)
@@ -115,8 +125,7 @@ def main(scene: str, duration: float, steps: int, draw: bool = False,) -> None:
         print("Warning: fade may over-run due to LIFX lag")
         print("Consider a longer duration or fewer steps")
 
-    device_file = Path(__file__).parents[1] / "device.yml"
-    with device_file.open() as f:
+    with open(DEVICE_FILE) as f:
         device_config = yaml.safe_load(f)
 
     try:
@@ -124,10 +133,14 @@ def main(scene: str, duration: float, steps: int, draw: bool = False,) -> None:
         bulb.get_power()  # check that bulb works
     except (TypeError, KeyError, ValueError, WorkflowException):
         print("Device not/wrongly configured, getting first device on network")
-        bulb = LifxLAN(1).get_lights()[0]
-        device_config = {"ip": bulb.get_ip_addr(), "mac": bulb.get_mac_addr()}
-        with device_file.open("w") as f:
-            yaml.dump(device_config, f)
+        try:
+            bulb = LifxLAN(1).get_lights()[0]
+            device_config = {"ip": bulb.get_ip_addr(), "mac": bulb.get_mac_addr()}
+            with open(DEVICE_FILE, "w") as f:
+                yaml.dump(device_config, f)
+        except IndexError:
+            print("Couldn't find any device on network")
+            exit()
 
     print("Starting lighting")
     retry(bulb.set_power, "on")
