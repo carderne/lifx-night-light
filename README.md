@@ -29,7 +29,7 @@ export LIFX_BIN=$(which lifx-cli)
 
 Run one of the pre-configured scenes for five minutes:
 ```bash
-lifx-cli sleep --duration=5 --steps=10
+lifx-cli sleep --duration=5
 ```
 
 ## Scene configuration
@@ -63,11 +63,6 @@ lifx-cli --help
 To run, choose a scene and duration (in minutes):
 ```bash
 lifx-cli wake --duration=10
-```
-
-If it lags (slow Raspberry Pi or WiFi), you might want to reduce the number of steps (default is 10,000):
-```bash
-lifx-cli wake --duration=5 --steps=10
 ```
 
 You can also a chart of your config as follows. Output will be saved to a PNG with the same name as the config file.

@@ -18,8 +18,7 @@ def wait() -> None:
                 a = yaml.safe_load(f)
             scene = str(a["scene"])
             duration = int(a["duration"])
-            steps = int(a["steps"])
-            runner.main(scene, duration, steps)
+            runner.main(scene, duration)
         except FileNotFoundError:
             pass
         finally:

@@ -113,9 +113,10 @@ def retry(func: Callable, arg: Color | str, max_retries: int = 1) -> None:
 def main(
     scene: str,
     duration: float,
-    steps: int,
+    steps_per_min: int = 6,
     draw: bool = False,
 ) -> None:
+    steps = int(duration * steps_per_min)
     config = load_scene(scene, steps)
     if draw:
         plot(Path(f"{scene}.png"), config.colors)

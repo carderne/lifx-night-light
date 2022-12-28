@@ -25,7 +25,6 @@ def set_cron(days: str, time: str, duration: str) -> None:
                 LIFX_BIN,
                 "wake",
                 f"--duration={duration}",
-                "--steps=100",
                 ">>/var/log/cron.log 2>&1",
             ]
         )
@@ -82,7 +81,7 @@ def update() -> Response:
 def sleep() -> Response:
     duration = request.args.get("duration")
     app.logger.warning(f"Wind down for {duration} mins")
-    args = {"scene": "sleep", "duration": duration, "steps": 60}
+    args = {"scene": "sleep", "duration": duration}
     with open(ARGS_FILE, "w") as f:
         yaml.dump(args, f)
     return jsonify("Sleep!")
